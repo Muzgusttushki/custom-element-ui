@@ -6,6 +6,9 @@
       :class="[{
         'has-sidebar': $slots.sidebar || shortcuts
       }, popperClass]">
+      <el-button @click="changeType('daterange')">По дням</el-button>
+      <el-button @click="changeType('monthrange')">По месяцам</el-button>
+      <el-button @click="changeType('year')">По годам</el-button>
       <div class="el-picker-panel__body-wrapper">
         <slot name="sidebar" class="el-picker-panel__sidebar"></slot>
         <div class="el-picker-panel__sidebar" v-if="shortcuts">
@@ -90,6 +93,7 @@
   import MonthTable from '../basic/month-table';
   import ElInput from 'element-ui/packages/input';
   import ElButton from 'element-ui/packages/button';
+  import { bus } from '../bus';
 
   const calcDefaultValue = (defaultValue) => {
     if (Array.isArray(defaultValue)) {
@@ -194,6 +198,10 @@
     },
 
     methods: {
+      changeType(type) {
+        bus.$emit('changeType', type);
+        this.$emit('pick', null);
+      },
       handleClear() {
         this.minDate = null;
         this.maxDate = null;

@@ -7,6 +7,9 @@
         'has-sidebar': $slots.sidebar || shortcuts,
         'has-time': showTime
       }, popperClass]">
+      <el-button @click="changeType('daterange')">По дням</el-button>
+      <el-button @click="changeType('monthrange')">По месяцам</el-button>
+      <el-button @click="changeType('year')">По годам</el-button>
       <div class="el-picker-panel__body-wrapper">
         <slot name="sidebar" class="el-picker-panel__sidebar"></slot>
         <div class="el-picker-panel__sidebar" v-if="shortcuts">
@@ -170,6 +173,7 @@
   import YearTable from '../basic/year-table';
   import MonthTable from '../basic/month-table';
   import DateTable from '../basic/date-table';
+  import { bus } from '../bus';
 
   export default {
     mixins: [Locale],
@@ -218,8 +222,15 @@
         }
       }
     },
-
     methods: {
+      changeType(type) {
+        bus.$emit('changeType', type);
+      },
+      changeSelectionMode(type) {
+        this.selectionMode = type;
+        this.currentView = type;
+        console.log(this.selectionMode, 'change mode');
+      },
       proxyTimePickerDataProperties() {
         const format = timeFormat => {this.$refs.timepicker.format = timeFormat;};
         const value = value => {this.$refs.timepicker.value = value;};
@@ -503,6 +514,12 @@
       TimePicker, YearTable, MonthTable, DateTable, ElInput, ElButton
     },
 
+    mounted() {
+      bus.$on('changedatetype', function(type) {
+        this.changeSelectionMode(type);
+      }.bind(this));
+    },
+
     data() {
       return {
         popperClass: '',
@@ -527,7 +544,6 @@
         userInputTime: null
       };
     },
-
     computed: {
       year() {
         return this.date.getFullYear();

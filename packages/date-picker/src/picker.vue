@@ -397,6 +397,7 @@ export default {
 
   data() {
     return {
+      customType: this.type,
       pickerVisible: false,
       showClose: false,
       userInput: null,
@@ -406,6 +407,9 @@ export default {
   },
 
   watch: {
+    customType(type) {
+      this.customType = type;
+    },
     pickerVisible(val) {
       if (this.readonly || this.pickerDisabled) return;
       if (val) {
@@ -445,7 +449,7 @@ export default {
 
   computed: {
     ranged() {
-      return this.type.indexOf('range') > -1;
+      return this.customType.indexOf('range') > -1;
     },
 
     reference() {
@@ -477,17 +481,17 @@ export default {
     },
 
     triggerClass() {
-      return this.prefixIcon || (this.type.indexOf('time') !== -1 ? 'el-icon-time' : 'el-icon-date');
+      return this.prefixIcon || (this.customType.indexOf('time') !== -1 ? 'el-icon-time' : 'el-icon-date');
     },
 
     selectionMode() {
-      if (this.type === 'week') {
+      if (this.customType === 'week') {
         return 'week';
-      } else if (this.type === 'month') {
+      } else if (this.customType === 'month') {
         return 'month';
-      } else if (this.type === 'year') {
+      } else if (this.customType === 'year') {
         return 'year';
-      } else if (this.type === 'dates') {
+      } else if (this.customType === 'dates') {
         return 'dates';
       }
 
@@ -498,11 +502,11 @@ export default {
       if (typeof this.showTrigger !== 'undefined') {
         return this.showTrigger;
       }
-      return HAVE_TRIGGER_TYPES.indexOf(this.type) !== -1;
+      return HAVE_TRIGGER_TYPES.indexOf(this.customType) !== -1;
     },
 
     displayValue() {
-      const formattedValue = formatAsFormatAndType(this.parsedValue, this.format, this.type, this.rangeSeparator);
+      const formattedValue = formatAsFormatAndType(this.parsedValue, this.format, this.customType, this.rangeSeparator);
       if (Array.isArray(this.userInput)) {
         return [
           this.userInput[0] || (formattedValue && formattedValue[0]) || '',
@@ -511,7 +515,7 @@ export default {
       } else if (this.userInput !== null) {
         return this.userInput;
       } else if (formattedValue) {
-        return this.type === 'dates'
+        return this.customType === 'dates'
           ? formattedValue.join(', ')
           : formattedValue;
       } else {
@@ -521,7 +525,7 @@ export default {
 
     parsedValue() {
       if (!this.value) return this.value; // component value is not set
-      if (this.type === 'time-select') return this.value; // time-select does not require parsing, this might change in next major version
+      if (this.customType === 'time-select') return this.value; // time-select does not require parsing, this might change in next major version
 
       const valueIsDateObject = isDateObject(this.value) || (Array.isArray(this.value) && this.value.every(isDateObject));
       if (valueIsDateObject) {
@@ -529,7 +533,7 @@ export default {
       }
 
       if (this.valueFormat) {
-        return parseAsFormatAndType(this.value, this.valueFormat, this.type, this.rangeSeparator) || this.value;
+        return parseAsFormatAndType(this.value, this.valueFormat, this.customType, this.rangeSeparator) || this.value;
       }
 
       // NOTE: deal with common but incorrect usage, should remove in next major version
@@ -579,10 +583,8 @@ export default {
       gpuAcceleration: false
     };
     this.placement = PLACEMENT_MAP[this.align] || PLACEMENT_MAP.left;
-
     this.$on('fieldReset', this.handleFieldReset);
   },
-
   methods: {
     focus() {
       if (!this.ranged) {
@@ -600,7 +602,7 @@ export default {
     parseValue(value) {
       const isParsed = isDateObject(value) || (Array.isArray(value) && value.every(isDateObject));
       if (this.valueFormat && !isParsed) {
-        return parseAsFormatAndType(value, this.valueFormat, this.type, this.rangeSeparator) || value;
+        return parseAsFormatAndType(value, this.valueFormat, this.customType, this.rangeSeparator) || value;
       } else {
         return value;
       }
@@ -609,7 +611,7 @@ export default {
     formatToValue(date) {
       const isFormattable = isDateObject(date) || (Array.isArray(date) && date.every(isDateObject));
       if (this.valueFormat && isFormattable) {
-        return formatAsFormatAndType(date, this.valueFormat, this.type, this.rangeSeparator);
+        return formatAsFormatAndType(date, this.valueFormat, this.customType, this.rangeSeparator);
       } else {
         return date;
       }
@@ -617,12 +619,12 @@ export default {
 
     // {parse, formatTo} String deals with user input
     parseString(value) {
-      const type = Array.isArray(value) ? this.type : this.type.replace('range', '');
+      const type = Array.isArray(value) ? this.customType : this.customType.replace('range', '');
       return parseAsFormatAndType(value, this.format, type);
     },
 
     formatToString(value) {
-      const type = Array.isArray(value) ? this.type : this.type.replace('range', '');
+      const type = Array.isArray(value) ? this.customType : this.customType.replace('range', '');
       return formatAsFormatAndType(value, this.format, type);
     },
 
@@ -713,9 +715,9 @@ export default {
       if (!this.pickerVisible) return;
       this.pickerVisible = false;
 
-      if (this.type === 'dates') {
+      if (this.customType === 'dates') {
         // restore to former value
-        const oldValue = parseAsFormatAndType(this.valueOnOpen, this.valueFormat, this.type, this.rangeSeparator) || this.valueOnOpen;
+        const oldValue = parseAsFormatAndType(this.valueOnOpen, this.valueFormat, this.customType, this.rangeSeparator) || this.valueOnOpen;
         this.emitInput(oldValue);
       }
     },
@@ -725,7 +727,7 @@ export default {
     },
 
     handleFocus() {
-      const type = this.type;
+      const type = this.customType;
 
       if (HAVE_TRIGGER_TYPES.indexOf(type) !== -1 && !this.pickerVisible) {
         this.pickerVisible = true;
@@ -787,7 +789,7 @@ export default {
     },
 
     handleRangeClick() {
-      const type = this.type;
+      const type = this.customType;
 
       if (HAVE_TRIGGER_TYPES.indexOf(type) !== -1 && !this.pickerVisible) {
         this.pickerVisible = true;
@@ -827,7 +829,7 @@ export default {
       this.picker.popperClass = this.popperClass;
       this.popperElm = this.picker.$el;
       this.picker.width = this.reference.getBoundingClientRect().width;
-      this.picker.showTime = this.type === 'datetime' || this.type === 'datetimerange';
+      this.picker.showTime = this.customType === 'datetime' || this.customType === 'datetimerange';
       this.picker.selectionMode = this.selectionMode;
       this.picker.unlinkPanels = this.unlinkPanels;
       this.picker.arrowControl = this.arrowControl || this.timeArrowControl || false;
@@ -887,12 +889,18 @@ export default {
 
     unmountPicker() {
       if (this.picker) {
+        this.doDestroy(true);
         this.picker.$destroy();
         this.picker.$off();
         if (typeof this.unwatchPickerOptions === 'function') {
           this.unwatchPickerOptions();
         }
+        // console.log(this.picker.$el);
+
+        // .removeChild(document.querySelector('.el-picker-panel.el-date-range-picker.el-popper'));
+        // document.removeChild(document.querySelector('.el-picker-panel.el-date-range-picker.el-popper'));
         this.picker.$el.parentNode.removeChild(this.picker.$el);
+        console.log(this.picker.$el);
       }
     },
 
